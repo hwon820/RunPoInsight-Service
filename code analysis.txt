@@ -1,0 +1,75 @@
+1. filenamechange.py : 데이터 폴더에 있는 사진 파일명에 숫자(counter) 추가해서 rename 
+2. filesplit.py : train, test, valid 파일을 각각 생성하고 데이터 폴더의 사진 파일을 split
+	      라벨 파일은 따로 label 폴더 생성해 이동 
+3. filesplit2.py : 얘도 image파일이랑 label 파일 이동하는데 어떤 이동인지는 잘..
+4. yamlfile.py : yolo 학습 시 yaml 파일을 보고 경로 이해
+5. yolotrain.py: 시간에 따른 yolo model의 학습 상태를 저장함 'yolov8_{current_time}.pt'
+	-> 사람, 배번표 둘 다
+6. predict.py: person.pt 모델로 특정 영상에 대한 예측 적용
+	-> detecting
+7. tracking.py: 러닝 영상을 캡쳐한 frame을 best yolo model에 적용하고 시각화
+	-> 객체 추적 함수 track : 객체 아이디 유지 / Sort 기능을 함.
+	-> yolo5+sort -> yolo8 : 정확도는 비슷, yolo8이 가볍
+8 ~ 9. main_papernum0.py, main_papernum2.py, main_papernum0.py
+	: 8번 - 동영상 넣으면 첫 프레임 이미지 캡쳐 후 배경 이미로 전환
+	 > yolo track을 써서 box 안에 있는 이미지 캡쳐 후 합쳐서 영상으로 만듦(배경 이미지 위에 덮어쓰기) 
+	 > 개인 러닝 영상 만들어짐
+	: main_papernum2.py : 개인 러닝 영상을 가지고 배번표를 똑같은 방식으로 영상 추출
+		> 배번표 이미지 크롭 후 수정(gray scale 변환, ocr:이미지 내 숫자텍스트 추출)
+		> 처음엔 test 용 숫자 따로 지정했다가, 나중엔 숫자가 감지될 때마다 count해서 가장 많이 된 거 고름
+
+10. mediapipe_image.py, mediapipe_ori.py -> mediapipe로 포즈 추정 이미지 받기/영상 받기
+				      -> output: 스켈레톤, 랜드마크 좌표
+11. num_detect.py -> ocr 실험해본 거
+
+
+[각 python 파일 역할, 아래 데이터 폴더 의미, 어떤 형식으로 저장되는지]
+[MediaPipe 모델링할 때 따로 튜닝하거나 적용한 방법론 같은 게 있는지...]
+
+
+data/img: 학습 때 사용하기 위해 별도로 class 적용. 실제로 분석에 사용되진X
+data/w_c_00
+data/w_g_00
+
+data_folder/papernum: 배번 학습을 위한 데이터를 분리한 것. 나눠 놓으면 YOLO가 자동으로 적용해 학습
+라벨링툴 -> labelimg 라이브러리 pip 통해서 설치
+라벨링 텍스트 파일
+.cache
+
+
+labelingdata/temp/t_c_00: 클래스 지정 용... classes.txt
+YOLO 구축 시 조건
+
+
+runs/detect: object detect만. 감지.
+runs/pose: Yolov8 설정만 다르게 하면 포즈 추정 가능. 
+            /train 학습 성능 결과 파일
+            /train9 -> best model   5.yoloytrain.py
+
+data_folder: 배번표 yolo 학습을 위한 이미지 라벨링 데이터 포함 폴더
+바깥 train/test/valid: 사람을 학습시키기 위한 yolo 학습을 위한 라벨링 이미지 데이터 포함 폴더
+		-> person으로 detection
+test/images
+test/labels
+
+
+---------------
+
+~모듈 돌리는 main들~
+main.py: 실질적으로 작업이 이루어지는 워크스페이스에서 돌아감
+	0. 노트북이 영상 찍고 코덱 변환 후 워크스페이스로 전송
+	1. 파일 개수가 변하면 최신 파일(방금 전송받은 파일)인 mp4 파일로 분석 수행
+	2. 사람 분리 후 개인 영상을 저장
+	3. 각 사람 영상을 불러와 배번표 추출, ocr 분석(most_num 변수)
+	4. mediapipe 실행
+	5. 서버로 분석 결과 전송 (upload)
+
+
+
+main_mediapipe
+main_num
+main_person
+
+
+
+mp4change.py -> 서버에 맞게 영상 유형 바꿔주기
